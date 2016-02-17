@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<link rel="stylesheet" href="demo.css" media="screen" />
+<link rel="stylesheet" href="style.css" media="screen" />
+<link rel="stylesheet"
+	href="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dijit/themes/claro/claro.css"
+	media="screen" />
+<link rel="stylesheet"
+	href="http://js.arcgis.com/3.14/esri/css/esri.css" />
+<style>
+#mapDiv, .map.container {
+	padding: 0;
+	margin: 0;
+	height: 100%;
+}
+
+#legendDiv {
+	background-color: #fff;
+	position: absolute !important;
+	z-index: 99;
+	top: 10px;
+	right: 20px;
+}
+</style>
+<title>Webmap 5</title>
+</head>
+<body class="claro">
+	<script>
+		var dojoConfig = {
+			dojoBlankHtmlUrl: location.pathname.replace(/\/[^/]+$/, '') + '/blank.html',
+			packages: [{
+				name: 'my',	location: location.pathname.replace(/\/[^/]+$/, '') + '/js/my/'
+			}]
+		};
+	</script>
+	<script src="http://js.arcgis.com/3.14compact/" data-dojo-config="isDebug: 1, async: 1"></script>
+	<!--<script src="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojo/dojo.js" data-dojo-config="isDebug: 1, async: 1, parseOnLoad: 1"></script>-->
+	<script>		
+	
+		require([
+			"dojo/parser", "my/toggleButton2"
+		], function(parser){
+			parser.parse();
+		});
+	</script>		
+	<script type="text/javascript">
+	var mapLayers = [];
+	var map;
+	var obs_insitu_collective_layer, obs_situ_geolink_met_layer1, obs_situ_geolink_oc_layer, obs_situ_geolink_riv_layer, 
+		obs_situ_geolink_wq_layer, obs_situ_geolink_aq_layer, obs_situ_geolink_radiosonde_layer, oilAndGasLayer ;
+	require([ 
+		"my/initMap2",
+		"dojo/dom-construct", 
+		"esri/dijit/Popup", 
+		"esri/InfoTemplate",
+		"dijit/form/ToggleButton", 
+		"dojo/dom", 
+		"dojo/on", 
+		"dijit/registry",		
+		"esri/map", 
+		"esri/arcgis/utils", 
+		"esri/dijit/Legend",
+		"esri/layers/ArcGISDynamicMapServiceLayer", 
+		"esri/layers/FeatureLayer", 
+		"dojo/domReady!"], 
+		function(
+		initMap2,
+		domConstruct, 
+		Popup, 
+		InfoTemplate, 
+		toggleButton, 
+		dom, 
+		on, 
+		registry,
+		Map, 
+		arcgisUtils, 
+		Legend, 
+		ArcGISDynamicMapServiceLayer, 
+		FeatureLayer
+		){
+			var myFunctions = dojo.getObject('myFunctions', true);			
+			 var popup = new Popup({			    
+			    lineSymbol: null,
+			    markerSymbol: null
+			  }, domConstruct.create("div"));
+			  
+		   	
+
+		    //esri.hide(dijit.byId("obs_pane"));
+			myFunctions.init = function(){				
+				initMap2.init();
+				map = initMap2.getMap();
+								
+				esri.hide(dojo.byId("obs_pane"));
+				esri.hide(dojo.byId("cyclone_pane"));
+						
+			};
+			
+			myFunctions.addLayer = function(layerId, layerUrl, legendPane){				
+				var layer = new ArcGISDynamicMapServiceLayer(layerUrl, {id:layerId});
+				map.addLayer(layer);				
+				esri.show(legendPane);
+			};
+			myFunctions.removeLayer = function(layerId, legendPane){
+				map.removeLayer(map.getLayer(layerId));
+				esri.hide(legendPane);
+			};
+			myFunctions.setLayerVisibility = function(layer, legendpane) {  				
+		        if(layer.visible){ 
+		        	layer.hide();
+		        	esri.hide(legendpane);
+		        }
+		        else{
+		        	layer.show();
+		        	esri.show(legendpane);
+		        }  
+		    };
+		    myFunctions.init();			    
+		}
+	);
+	
+	require(["dijit/registry", "dojo/dom", "dijit/place", "dijit/form/CheckBox"], 
+		function(registry, dom, place,CheckBox){
+			//place.around(
+			
+			var acheckBox = new CheckBox({
+        		name: "checkBox",
+		        value: "agreed",
+		        checked: false,
+		        onChange: function(b){ alert('onChange called with parameter = ' + b + ', and widget value = ' + this.get('value') ); }
+		    }, "checkBox").startup();
+		    var stormPane = registry.byId("stormPane");
+		    
+		    //registry.byId("checkBox").placeAt(registry.byId("stormPane").focusNode,"first");
+		    
+		    //place.at(dom.byId("stormPane").focusNode, checkBox, "end");
+		    //checkBox.placeAt(dijit.byId('stormPane').focusNode, "end");
+		     //place.around(checkBox, registry.byId("stormPane"), ["after", "before"], true);
+		}
+	);	
+	</script>	
+		
+	
+	<div id="appLayout" class="demoLayout" data-dojo-type="dijit/layout/BorderContainer"
+		data-dojo-props="design: 'headline'">
+
+		<div class="edgePanel" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region: 'top'">Header
+			content (top)</div>
+
+		<div id="contentTabs" class="edgePanel" data-dojo-type="dijit/layout/TabContainer"
+			data-dojo-props="region: 'right', tabPosition: 'bottom', splitter: true">
+			<div class="edgePanel" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="title: 'Layer'">
+				<div style="border: solid black 1px;">
+					<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Observation'">
+						<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'In-situ'">
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Surface Weather/Ocean Condition',
+								id:'obs_insitu_collective' 								
+							">
+							</div>							
+							<div>Links to Individual Observing Sites</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Weather Stations',
+								id:'obs_situ_geolink_met' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Coastal/Lake/Ocean Platforms',
+								id:'obs_situ_geolink_oc' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'River Gages',
+								id:'obs_situ_geolink_riv' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Water Quality Stations',
+								id:'obs_situ_geolink_wq' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Air Quality Stations',
+								id:'obs_situ_geolink_aq' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Upper-Air (Radiosonde) Stations',
+								id:'obs_situ_geolink_radiosonde' 								
+							">
+							</div>
+							<div data-dojo-type="my/toggleButton2" data-dojo-props="title:'Oil & gas data',
+								id:'oil_data' 								
+							">
+							</div>						
+							
+							
+						</div>
+					</div>
+					<div data-dojo-type="dijit/TitlePane"
+						data-dojo-props="title: 'Storm Track & Intensity Forecasts'">
+						<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Tropical Cyclones'">
+							<button data-dojo-type="dijit.form.ToggleButton"
+								data-dojo-props='iconClass:"dijitCheckBoxIcon",
+							label:"Track Forecast & Observed Track", checked:false,
+						     onChange:function(checked){ 
+						     	if(checked){
+						     		myFunctions.addLayer("Cyclone","http://nowcoast.noaa.gov/arcgis/rest/services/nowcoast/wwa_meteocean_tropicalcyclones_trackintensityfcsts_time/MapServer", dojo.byId("cyclone_pane"));
+						     		
+						     	}
+						     	else{
+						     		myFunctions.removeLayer("Cyclone", dojo.byId("cyclone_pane"));
+						     	}
+						     }
+							'></button>
+						</div>
+					</div>
+					<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Hazardous Conditions/Threats'">
+						<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Outlooks'">
+							<div id="stormPane" data-dojo-type="dijit/TitlePane"
+								data-dojo-props="title: 'Thunderstorm & Fire Weather'">
+								<select data-dojo-type="dijit/form/Select">
+									<option value="conv" selected="selected">Convective Outlook</option>
+									<option value="dfire">Dry Fire Weather Outlook</option>
+									<option value="cfire">Non-Dry Fire Weather Outlook</option>
+									<option value="fire">Dry + Non-Dry Fire Weather Outlook</option>
+								</select>
+							</div>
+							<input id="checkBox" /> <label for="checkBox"></label>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="edgePanel" data-dojo-type="dijit/layout/ContentPane"
+				data-dojo-props="title: 'Legend'">
+				<div id="obs_pane" data-dojo-type="dijit/TitlePane"
+					data-dojo-props="title: 'Surface Weather Observations'">
+					<img src="/hhtv2/resources/image/legend/obs-meteocean-marinewx.png" />
+				</div>
+				<div id="cyclone_pane" data-dojo-type="dijit/TitlePane"
+					data-dojo-props="title: 'Tropical Cyclone Forecast & Observed Track'">
+					<img src="/hhtv2/resources/image/legend/obs-meteocean-marinewx.png" />
+				</div>
+			</div>
+
+			<div class="edgePanel" data-dojo-type="dijit/layout/ContentPane"
+				data-dojo-props="title: 'Long tab label for this one'">
+				<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Pane #1'">
+					<div id="pane1_sub1"></div>
+				</div>
+				<div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Pane #2'">
+					<button id="testBtn">Test Button</button>
+				</div>
+				<div data-dojo-type="dijit/TitlePane"
+					data-dojo-props="title: 'Pane #3', href:'layout/button.html'">blank content</div>
+			</div>
+		</div>
+
+		<div id="mapDiv" class="centerPanel" data-dojo-type="dijit/layout/ContentPane"
+			data-dojo-props="region: 'center'">
+			<div id="timeSliderDiv"></div>
+			</div>
+			
+	</div>
+</body>
+</html>
